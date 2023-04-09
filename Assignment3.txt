@@ -1,0 +1,68 @@
+Data Analysis Tools
+Week 1: Running an Analysis of Variance
+In this task, I am analyzing the variance of internetuserate, a quantitative variable, against polityscore, a categorical score. Because polityscore was measured with 21 bins, I have adjusted the values to fall within 3 bins, low, med, and high, because the sample size is small and I want each bin to have a greater number of samples for more accurate statistics. I then performed an analysis of variance (ANOVA).
+
+Load the data
+
+'''
+Code for Peer-graded Assignment: Running an analysis of variance
+Course: Data Management and Visualization
+Specialization: Data Analysis and Interpretation
+'''
+ 
+import pandas as pd
+import statsmodels.formula.api as smf
+import statsmodels.stats.multicomp as multi
+
+data = pd.read_csv('c:/Users/Greg/Desktop/gapminder.csv', low_memory=False)
+Set the variables to numeric and sort Polity Score into three bins
+
+data['internetuserate'] = pd.to_numeric(data['internetuserate'], errors='coerce')
+data['polityscore'] = pd.to_numeric(data['polityscore'], errors='coerce')
+
+sub1 = data.copy()
+
+sub3 = sub1[['internetuserate', 'polityscore']].dropna()
+sub3['polityscore_binned'] = pd.cut(sub3.polityscore, 3, labels=['Low', 'Med', 'High'])
+Use the ols function for calculating the F-statistic and associated p value
+
+model1 = smf.ols(formula='internetuserate ~ C(polityscore_binned)', data=sub3)
+results1 = model1.fit()
+results1.summary()
+OLS Regression Results
+Dep. Variable:	internetuserate	R-squared:	0.153
+Model:	OLS	Adj. R-squared:	0.141
+Method:	Least Squares	F-statistic:	13.68
+Date:	Thu, 12 Jan 2017	Prob (F-statistic):	3.45e-06
+Time:	15:23:47	Log-Likelihood:	-720.18
+No. Observations:	155	AIC:	1446.
+Df Residuals:	152	BIC:	1455.
+Df Model:	2		
+Covariance Type:	nonrobust		
+coef	std err	t	P>|t|	[95.0% Conf. Int.]
+Intercept	27.3843	4.812	5.691	0.000	17.878 36.891
+C(polityscore_binned)[T.Med]	-15.3636	6.805	-2.258	0.025	-28.807 -1.920
+C(polityscore_binned)[T.High]	12.4031	5.450	2.276	0.024	1.636 23.170
+Omnibus:	11.048	Durbin-Watson:	1.630
+Prob(Omnibus):	0.004	Jarque-Bera (JB):	7.673
+Skew:	0.416	Prob(JB):	0.0216
+Kurtosis:	2.295	Cond. No.	5.38
+Means for internetuserate by polity score
+
+m1= sub3.groupby('polityscore_binned').mean()
+m1
+internetuserate	polityscore
+polityscore_binned		
+Low	27.384319	-6.750000
+Med	12.020730	-0.607143
+High	39.787427	8.101010
+Standard deviations for internetuserate by polity score
+
+sd1 = sub3.groupby('polityscore_binned').std()
+sd1
+internetuserate	polityscore
+polityscore_binned		
+Low	22.581908	1.776910
+Med	15.349624	1.931019
+High	28.284737	1.809809
+Results show that there is a significant correlation between a country’s internet use rate and its polity score. Countries with a Low polity score have more internet use (mean=27.38, sd=±22.58) than countries with Med polity scores (mean=12.02, sd=±15.34), but not as much as countries with High polity scores (mean=39.79, sd=±28.28). (F-statistic = 13.68, p = 0.00000345).
